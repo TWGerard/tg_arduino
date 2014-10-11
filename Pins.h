@@ -7,51 +7,26 @@
 
 #include "Arduino.h"
 
-const int DIGITAL = 0;
-const int ANALOG = 1;
+
+#define DIGITAL 0
+#define ANALOG 1
 
 
 class Pin {
-  private:
-  int pin_number, mode, type;
+private:
+  int _pin, _state;
+  bool _mode, _type, _ready;
 
-  public:
-  int state;
+  static bool pins[20]; // for now this just tracks whether or not a pin has been registered, but it could be a pointer to the pin object maybe?
 
+public:
   Pin();
-  Pin(int pinNumber, int startMode, int startType = DIGITAL);
-  void setup();
+  Pin(int pin, bool mode = OUTPUT, bool type = DIGITAL);
 
-  boolean set(int newState);
-  int get(boolean update = true);
-};
+  bool setup();
 
-class ColorSensor {
-  private:
-  Pin *pins;
-
-  public:
-  int red;
-  int green;
-  int blue;
-  int *state;
-
-  ColorSensor(int pin_number_r, int pin_number_b, int pin_number_g);
-
-  int* get(boolean update = true);
-};
-
-class SerialPin {
-  private:
-  int pin_number;
-  float baselineTemp, state;
-
-  public:
-  SerialPin(int pin_number);
-
-  void setup();
-
-  float get(boolean update = true);
+  bool set(int state);
+  int get(bool update = true);
 };
 
 #endif

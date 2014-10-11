@@ -4,94 +4,109 @@
 
 #include "Pins.h"
 
+// Add static references to each physical pin on the Arduino
+// These will be used to make sure each pin is only used once
 
-  Pin::Pin() {
-    pin_number = -1;
-    mode = INPUT;
-    type = DIGITAL;
-  }
-  Pin::Pin(int pinNumber, int startMode, int startType) {
-    pin_number = pinNumber;
-    mode = startMode;
-    type = startType;
-  }
+bool Pin::pins[20] = { false };
 
-  void Pin::setup() {
-    if (type == DIGITAL) {
-      pinMode(pin_number, mode);
-    }
-  }
+Pin::Pin() {
+  _pin = -1;
+  _mode = OUTPUT;
+  _type = DIGITAL;
+  _state = 0;
+  _ready = false;
+}
+Pin::Pin(int pin, bool mode, bool type) {
+  _pin = pin;
+  _mode = mode;
+  _type = type;
+  _state = 0;
+  _ready = false;
+}
 
-  boolean Pin::set(int newState) {
-    if (mode == OUTPUT) {
-      state = newState;
-      if (type == DIGITAL) {
-        digitalWrite(pin_number, state);
-      } 
-      else {
-        analogWrite(pin_number, state);
-      }
-      return true;
-    } 
-    else {
-      // Can't set an output!
-      return false;
-    }
+bool Pin::setup() {
+  // Make sure pin has been set
+  if (_pin == -1) {
+    // throw error
+    return false;
   }
 
-  int Pin::get(boolean update) {
-    if (mode == INPUT && update) {
-      if (type == DIGITAL) {
-        state = digitalRead(pin_number);
-      } 
-      else {
-        state = analogRead(pin_number);
-      }
-    }
-    return state;
+  // Add error catching for what each specific pin can actually do
+
+  // Pins 0 & 1 are unusable?
+  // Pins 0-13 can be DIGITAL INPUT/OUTPUT
+  // Pins 14-19 are INPUT only (including ANALOG)
+  // Only Pins 3, 5, 6, & 9-11 can be ANALOG OUTPUT
+
+  if (Pin::pins[_pin]) {
+    // pin is already set. throw error
+    return false;
   }
 
-
-
-  ColorSensor::ColorSensor(int pin_number_r, int pin_number_b, int pin_number_g) {
-    pins = new Pin[3];
-    Pin *newPinR = new Pin(pin_number_r, INPUT, ANALOG);
-    pins[0] = *newPinR;
-    Pin *newPinG = new Pin(pin_number_g, INPUT, ANALOG);
-    pins[1] = *newPinG;
-    Pin *newPinB = new Pin(pin_number_b, INPUT, ANALOG);
-    pins[2] = *newPinB;
-    
-    state = new int[3];
-  }
-
-  int* ColorSensor::get(boolean update) {
-    if (update) {
-      state[0] = red = pins[0].get();
-      delay(5);
-      state[1] = green = pins[1].get();
-      delay(5);
-      state[2] = blue = pins[2].get();
-    }
-    return state;
-  }
-
-
-
-
-  SerialPin::SerialPin(int pin_number) : pin_number(pin_number) {}
-
-  void SerialPin::setup() {
+  if (_type == ANALOG) {
+    // Make sure Serial is started with Serial.begin(9600);
     Serial.begin(9600);
   }
 
-  float SerialPin::get(boolean update) {
-    if (update) {
-      float rval = analogRead(pin_number);
-      rval = (rval/1024.0) * 5.0; // to Volts
-      rval = (rval - .5) * 100; // to Celcius
-      state = rval;
-    }
-    return state;
+  pinMode(_pin, _mode);
+  Pin::pins[_pin] = true;
+  _ready = true;
+  return true;
+}
+
+bool Pin::set(int state) {
+  if (!_ready) {
+    // throw error
+    return false;
   }
-  
+
+  if (_mode == OUTPUT) {
+    if (_type == DIGITAL) {
+      // Convert newState to boolean
+      _state = (bool)state;
+      digitalWrite(_pin, _state);
+      return true;
+    } else {
+      // Make sure new state is between 0 and 255
+      if (0 <= state <= 255) {
+        _state = state;
+        analogWrite(_pin, _state);
+        return true;
+      } else {
+        // out of range. throw warning
+        // min/max state arg to 0 or 255
+        if (state << 0) {
+          _state = 0;
+        } else if (state >> 255) {
+          _state = 255;
+        }
+        analogWrite(_pin, _state);
+        return false;
+      }
+    }
+  } else {
+    // Can't set an output!
+    // throw a warning
+    return false;
+  }
+}
+
+int Pin::get(bool update) {
+  if (!_ready) {
+    // throw error
+    return _state;
+  }
+
+  if (_mode == INPUT && update) {
+    if (_type == DIGITAL) {
+      _state = digitalRead(_pin);
+    } else {
+      _state = analogRead(_pin);
+    }
+  } else if (_mode == OUTPUT) {
+    // trying to get an OUTPUT. returns 0. throw warning.
+  }
+  return _state; // returns 0 if called on OUTPUT
+}
+
+
