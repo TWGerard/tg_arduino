@@ -67,7 +67,7 @@ bool Pin::set(int state) {
       return true;
     } else {
       _state = constrain(state, 0, 255);
-      analogWrite(_state);
+      analogWrite(_pin, _state);
       return true;
     }
   } else {
