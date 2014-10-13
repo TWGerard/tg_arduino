@@ -27,6 +27,10 @@ public:
 
   bool set(int state);
   int get(bool update = true);
+
+  bool tone(unsigned int pitch);
+  bool tone(unsigned int pitch, unsigned long duration);
+  bool noTone();
 };
 
 #endif

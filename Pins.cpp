@@ -103,10 +103,23 @@ int Pin::get(bool update) {
     } else {
       _state = analogRead(_pin);
     }
-  } else if (_mode == OUTPUT) {
-    // trying to get an OUTPUT. returns 0. throw warning.
   }
+
   return _state; // returns 0 if called on OUTPUT
 }
 
 
+bool Pin::tone(unsigned int pitch) {
+  ::tone(_pin, pitch);
+  return true;
+}
+
+bool Pin::tone(unsigned int pitch, unsigned long duration) {
+  ::tone(_pin, pitch, duration);
+  return true;
+}
+
+bool Pin::noTone() {
+  ::noTone(_pin);
+  return true;
+}
