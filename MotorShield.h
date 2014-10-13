@@ -23,7 +23,6 @@
 
 class MotorShield {
 private:
-	Pin *_pins[6];
 	Pin _speed_l, _direction_l, _brake_l, _speed_r, _direction_r, _brake_r;
 
 public:
