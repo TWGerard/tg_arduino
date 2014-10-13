@@ -62,27 +62,13 @@ bool Pin::set(int state) {
 
   if (_mode == OUTPUT) {
     if (_type == DIGITAL) {
-      // Convert newState to boolean
       _state = (bool)state;
       digitalWrite(_pin, _state);
       return true;
     } else {
-      // Make sure new state is between 0 and 255
-      if (0 <= state <= 255) {
-        _state = state;
-        analogWrite(_pin, _state);
-        return true;
-      } else {
-        // out of range. throw warning
-        // min/max state arg to 0 or 255
-        if (state << 0) {
-          _state = 0;
-        } else if (state >> 255) {
-          _state = 255;
-        }
-        analogWrite(_pin, _state);
-        return false;
-      }
+      _state = constrain(state, 0, 255);
+      analogWrite(_state);
+      return true;
     }
   } else {
     // Can't set an output!
