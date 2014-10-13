@@ -43,6 +43,7 @@ public:
 	void brakesOff();
 
 	void setSpeed(int speed);
+	int getSpeed();
 };
 
 

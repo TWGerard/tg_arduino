@@ -40,12 +40,13 @@ void MotorShield::backward(int speed) {
 }
 
 void MotorShield::stop() {
+	setSpeed(0);
 	brakesOn();
 }
 
 void MotorShield::turn(int speed, int direction) {
 	_direction_l.set(direction);
-	_direction_r.set(-direction);
+	_direction_r.set(!(bool)direction);
 	setSpeed(speed);
 	brakesOff();
 }
@@ -57,6 +58,15 @@ void MotorShield::drive(int speed, int direction, int angle) {
 void MotorShield::setSpeed(int speed) {
 	_speed_l.set(speed);
 	_speed_r.set(speed);
+}
+
+int MotorShield::getSpeed() {
+	if (_speed_l.get() == _speed_r.get()) {
+		return _speed_l.get();
+	} else {
+		// Should do math here if speeds are different
+		return _speed_l.get();
+	}
 }
 
 void MotorShield::brakesOn() {
